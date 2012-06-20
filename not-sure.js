@@ -6,7 +6,7 @@
 	fs.readdir('.', function(err, files) {
 		if (files.indexOf('.git') !== -1) {
 			exec('git diff', function(err, stdin, stdout) {
-				console.log(stdin);
+				console.log(stdin.length);
 			});
 		};
 	})
