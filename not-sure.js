@@ -6,8 +6,7 @@
 	var rl = require('readline');
 	var i = rl.createInterface(process.stdin, process.stdout, null);
 	var diff = '';
-	
-	
+
 	var notSure = {};
 	
 	notSure.getDiff = function(scm, cb) {
