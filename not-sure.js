@@ -11,9 +11,9 @@
 	
 	notSure.getDiff = function(scm, cb) {
 		exec(scm+' diff', function(err, stdin, stdout) {
-			if (err) return cb(err, null);
+			if (err) return cb(err);
 			if (stdin.length === 0) {
-				cb(new Error('No files changes'), null);
+				cb(new Error('No files changes'));
 			} else {
 				cb(null, stdin);
 			}
@@ -22,7 +22,7 @@
 		
 	notSure.chooseScm = function(path, cb) {
 		fs.readdir(path, function(err, files) {
-			if (err) return cb(err, null);
+			if (err) return cb(err);
 			if (files.indexOf('.git') > -1) return cb(null, 'git');
 			if (files.indexOf('.svn') > -1) return cb(null, 'svn');
 		});
@@ -36,10 +36,7 @@
 					process.stdin.destroy();
 					
 					if (developers.length === 0) {
-						return cb(
-							new Error('No developers specified'),
-							null
-						);
+						return cb(new Error('No developers specified'));
 					}
 					cb(null, {
 						title:title,
