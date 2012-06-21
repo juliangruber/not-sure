@@ -25,6 +25,7 @@
 			if (err) return cb(err);
 			if (files.indexOf('.git') > -1) return cb(null, 'git');
 			if (files.indexOf('.svn') > -1) return cb(null, 'svn');
+			cb(new Error('No SCM found'));
 		});
 	};
 	
