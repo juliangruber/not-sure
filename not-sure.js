@@ -36,9 +36,8 @@
 					i.close();
 					process.stdin.destroy();
 					
-					if (developers.length === 0) {
+					if (developers.length === 0)
 						return cb(new Error('No developers specified'));
-					}
 					cb(null, {
 						title:title,
 						description:description,
@@ -49,7 +48,7 @@
 		})
 	};
 	
-	if (!module.parent) {
+	notSure.ask = function() {
 		notSure.chooseScm('.', function(err, scm) {
 			if (err) throw err;
 			notSure.getDiff(scm, function(err, _diff) {
@@ -63,6 +62,10 @@
 			
 			// TODO: Send to server
 		});
+	};
+	
+	if (!module.parent) {
+		notSure.ask()
 	} else {
 		module.exports = notSure;
 	}
