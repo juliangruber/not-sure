@@ -5,7 +5,11 @@
 	var rl = require('readline');
 
 	/**
-	 * Shellscript that posts diffs to for-sure CodeReview server
+	 * notSure code review script
+	 *
+	 * Shellscript that grabs a git/svn diff of the current directory,
+	 * asks for `title`, `description` and `developers` to inform
+	 * and then prints a nice output ready to send for code review.
 	 */
 	var notSure = {};
 	
@@ -22,7 +26,7 @@
 			cb(null, stdin);
 		});
 	};
-	
+
 	/**
 	 * Check the filesystem for a `.git`/`.svn` folder in `path`
 	 * and pass the first found VCS to `cb()`
@@ -38,13 +42,14 @@
 			cb(new Error('No SCM found'));
 		});
 	};
-	
+
 	/**
 	 * Ask for `title` and `description` of the issue and developers to ask
 	 *
 	 * @param {Function} cb Gets passed answers object
 	 */
 	notSure.askQuestions = function(cb) {
+		// FIXME: Use a control flow library
 		var i = rl.createInterface(process.stdin, process.stdout, null);
 		i.question('Title of issue: ', function(title) {
 			i.question('Description: ', function(description) {
@@ -62,9 +67,9 @@
 			})
 		})
 	};
-	
+
 	/**
-	 * Helper function for underlining a string
+	 * Helper function that underlines a string
 	 *
 	 * @param {String} string
 	 * @param {String} char Character to underline `string` with
@@ -76,16 +81,17 @@
 		for (var i=0; i<string.length; i++) underline += char;
 		return string+'\n'+underline;
 	}
-	
+
 	/**
 	 * Perform the whole dance from checks and questions to the finished
 	 * output
 	 */
 	notSure.ask = function() {
+		// FIXME: Use a control flow library
 		notSure.findVcs('.', function(err, scm) {
 			if (err) throw err;
 			notSure.getDiff(scm, function(err, diff) {
-				if (err) throw err;				
+				if (err) throw err;
 				notSure.askQuestions(function(err, answers) {
 					if (err) throw err;
 
@@ -101,7 +107,7 @@
 			});
 		});
 	};
-	
+
 	/**
 	 * Only call `ask()` if not included by another module.
 	 */
@@ -110,5 +116,5 @@
 	} else {
 		module.exports = notSure;
 	}
-	
+
 })();
