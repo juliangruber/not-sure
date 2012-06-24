@@ -34,8 +34,8 @@
 	 * @param {String} path Working directory
 	 * @param {Function} cb Gets passed errors and Vcs name
 	 */
-	notSure.findVcs = function(path, cb) {
-		fs.readdir(path, function(err, files) {
+	notSure.findVcs = function(cb) {
+		fs.readdir('.', function(err, files) {
 			if (err) return cb(err);
 			if (files.indexOf('.git') > -1) return cb(null, 'git');
 			if (files.indexOf('.svn') > -1) return cb(null, 'svn');
@@ -44,7 +44,8 @@
 	};
 
 	/**
-	 * Ask for `title` and `description` of the issue and developers to ask
+	 * Ask for the issue's `title` and `description`
+	 * and which developers to ask
 	 *
 	 * @param {Function} cb Gets passed answers object
 	 */
@@ -88,7 +89,7 @@
 	 */
 	notSure.ask = function() {
 		// FIXME: Use a control flow library
-		notSure.findVcs('.', function(err, scm) {
+		notSure.findVcs(function(err, scm) {
 			if (err) throw err;
 			notSure.getDiff(scm, function(err, diff) {
 				if (err) throw err;
