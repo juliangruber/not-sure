@@ -7,16 +7,18 @@
 	var i = rl.createInterface(process.stdin, process.stdout, null);
 	var diff = '';
 
+	/**
+	 * Shellscript that posts diffs to for-sure CodeReview server
+	 * @type Object
+	 */
 	var notSure = {};
+	
 	
 	notSure.getDiff = function(scm, cb) {
 		exec(scm+' diff', function(err, stdin, stdout) {
 			if (err) return cb(err);
-			if (stdin.length === 0) {
-				cb(new Error('No files changes'));
-			} else {
-				cb(null, stdin);
-			}
+			if (stdin.length === 0) return cb(new Error('No files changes'));
+			cb(null, stdin);
 		});
 	};
 		
@@ -35,7 +37,6 @@
 				i.question('Developers to ask: ', function(developers) {
 					i.close();
 					process.stdin.destroy();
-					
 					if (developers.length === 0)
 						return cb(new Error('No developers specified'));
 					cb(null, {
@@ -47,6 +48,13 @@
 			})
 		})
 	};
+	
+	notSure.underline = function(string, char) {
+		char = char || '-';
+		var underline = '';
+		for (var i=0; i<string.length; i++) underline += char;
+		return string+'\n'+underline;
+	}
 	
 	notSure.ask = function() {
 		notSure.chooseScm('.', function(err, scm) {
@@ -60,7 +68,12 @@
 		notSure.askQuestions(function(err, answers) {
 			if (err) throw err;
 			
-			// TODO: Send to server
+			process.stdout.write('\u001B[2J\u001B[0;0f');
+			
+			console.log(notSure.underline(answers.title, '='));
+			console.log(answers.description+'\n');
+			console.log('asked: '+answers.developers+'\n');
+			console.log(diff);
 		});
 	};
 	
