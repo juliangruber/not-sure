@@ -1,6 +1,7 @@
 {
 	"name": "not-sure",
-	"keywords": ['review', 'codereview'],
+	"description": "shell script and lib for requesting code reviews",
+	"keywords": ["review", "codereview"],
 	"author": "Julian Gruber <julian@juliangruber.com>",
 	"version": "0.0.1",
 	"licenses": [{
