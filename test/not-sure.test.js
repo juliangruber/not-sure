@@ -64,11 +64,11 @@ describe('notSure', function() {
 	describe('underline()', function() {
 		it('should be formatted correctly', function() {
 			notSure.underline('teststring')
-			.should.equal('teststring\n----------');
+			.should.equal('teststring\n==========');
 		});
 		it('should underline with the correct char', function() {
-			notSure.underline('teststring', '=')
-			.should.equal('teststring\n==========');
+			notSure.underline('teststring', '-')
+			.should.equal('teststring\n----------');
 		});
 	});
 });

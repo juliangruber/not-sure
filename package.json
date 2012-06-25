@@ -1,6 +1,9 @@
 {
 	"name": "not-sure",
 	"author": "Julian Gruber <julian@juliangruber.com>",
+	"dependencies": {
+		"seq": "0.3.5"
+	}
 	"devDependencies": {
 		"mocha": "*",
 		"should": "*"

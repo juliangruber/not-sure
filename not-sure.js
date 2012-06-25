@@ -3,6 +3,7 @@
 	var fs = require('fs');
 	var exec = require('child_process').exec;
 	var rl = require('readline');
+	var Seq = require('seq');
 
 	/**
 	 * notSure code review script
@@ -50,23 +51,24 @@
 	 * @param {Function} cb Gets passed answers object
 	 */
 	notSure.askQuestions = function(cb) {
-		// FIXME: Use a control flow library
 		var i = rl.createInterface(process.stdin, process.stdout, null);
-		i.question('Title of issue: ', function(title) {
-			i.question('Description: ', function(description) {
-				i.question('Developers to ask: ', function(developers) {
-					i.close();
-					process.stdin.destroy();
-					if (developers.length === 0)
-						return cb(new Error('No developers specified'));
-					cb(null, {
-						title:title,
-						description:description,
-						developers:developers
-					});
-				})
-			})
-		})
+		// Make i.questions() use a error param
+		var question = function(q,c){i.question(q,function(a){c(null,a)})};
+		Seq().seq('title', function() {
+			question('Title of issue: ', this);
+		}).seq('desc', function() {
+			question('Description: ', this);
+		}).seq('devs', function() {
+			question('Developers to ask: ', this);
+		}).seq(function() {
+			i.close();
+			process.stdin.destroy();
+			cb(null, {
+				title: this.vars['title'],
+				description: this.vars['desc'],
+				developers: this.vars['devs']
+			});
+		});
 	};
 
 	/**
@@ -77,7 +79,7 @@
 	 * @returns {String} Underlined string
 	 */
 	notSure.underline = function(string, char) {
-		char = char || '-';
+		char = char || '=';
 		var underline = '';
 		for (var i=0; i<string.length; i++) underline += char;
 		return string+'\n'+underline;
@@ -88,86 +90,22 @@
 	 * output
 	 */
 	notSure.ask = function() {
-		// FIXME: Use a control flow library
-		notSure.findVcs(function(err, scm) {
-			if (err) throw err;
-			notSure.getDiff(scm, function(err, diff) {
-				if (err) throw err;
-				notSure.askQuestions(function(err, answers) {
-					if (err) throw err;
+		Seq()
+			.seq(function() { notSure.findVcs(this); })
+			.seq('diff', function(vcs) { notSure.getDiff(vcs, this); })
+			.seq(function() { notSure.askQuestions(this); })
+			.seq(function(answers) {
+				// clear the terminal
+				for (var i=0;i<5;i++) console.log('');
+				console.log('\u001B[2J\u001B[0;0f');
 
-					// clear the terminal
-					for (var i=0;i<5;i++) console.log('');
-					console.log('\u001B[2J\u001B[0;0f');
-
-					console.log(notSure.underline(answers.title, '='));
-					console.log(answers.description+'\n');
-					console.log('asked: '+answers.developers+'\n');
-					console.log(diff);
-				});
-			});
-		});
-	};
-	/**
-	 // Step (16)
-	Step(
-		function findVcs() {
-			notSure.findVcs(this);
-		},
-		function getDiff(err, scm) {
-			notSure.getDiff(scm, this);
-		},
-		function askQuestions(err, diff) {
-			this.diff = diff;
-			notSure.askQuestions(this);
-		},
-		function output(err, answers) {
-			console.log(this.diff);
-			console.log(answers);
-		}
-	);
-
-	// Seq (14)
-	Seq()
-		.seq(function findVcs() {
-			notSure.findVcs(this);
-		})
-		.seq('diff', function getDiff(err, scm) {
-			notSure.getDiff(scm, this);
-		})
-		.seq(function askQuestions() {
-			notSure.askQuestions(this);
-		})
-		.seq(function(err, answers) {
-			console.log(this.vars['diff']);
-			console.log(answers);
-		});
-
-	// invoke (11)
-	invoke(function findVcs(data, cb) {
-
-		notSure.findVcs(cb);
-
-	}).then(function getDiff(vcs, cb) {
-
-		notSure.getDiff(vcs, cb);
-
-	}).then(function askQuestions(diff, cb) {
-
-		this.diff = diff // ?
-		notSure.askQuestions(cb);
-
-	}).rescue(function(err) {
-
-		throw err;
-
-	}).end(initialData, function(answers) {
-
-		console.log(answers);
-		console.log(data[0]); // ?
-
-	});
-	 */
+				console.log(notSure.underline(answers.title));
+				console.log(answers.description+'\n');
+				console.log('asked: '+answers.developers+'\n');
+				console.log(this.vars['diff']);
+			})
+			.catch(function(err) { throw err; });
+	}
 
 	/**
 	 * Only call `ask()` if not included by another module.
