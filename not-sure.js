@@ -16,23 +16,30 @@
   
   /**
    * Execute a git/svn diff and pass results to `cb()`
+   * TODO: Check if svn includes new files in the diff
    * 
    * @param {String} cmd VCS shell command
    * @param {Function} cb Gets passed errors and diff output
    */
   notSure.getDiff = function(cmd, cb) {
-    exec(cmd+' diff', function(err, stdin, stdout) {
+    if (cmd === 'git') {
+      exec('(export GIT_INDEX_FILE=.git/tempindex; '
+        + 'cp .git/index $GIT_INDEX_FILE; '
+        + 'git add .; git diff --cached)', consume);
+    } else {
+      exec(cmd+' diff', consume);
+    }
+    function consume(err, stdout) {
       if (err) return cb(err);
-      if (stdin.length === 0) return cb(new Error('No files changes'));
-      cb(null, stdin);
-    });
+      if (stdout.length === 0) return cb(new Error('No files changes'));
+      cb(null, stdout);
+    };
   };
 
   /**
-   * Check the filesystem for a `.git`/`.svn` folder in `path`
+   * Check the filesystem for a `.git`/`.svn` folder in the cwd
    * and pass the first found VCS to `cb()`
    *
-   * @param {String} path Working directory
    * @param {Function} cb Gets passed errors and Vcs name
    */
   notSure.findVcs = function(cb) {
@@ -54,21 +61,28 @@
     var i = rl.createInterface(process.stdin, process.stdout, null);
     // Make i.questions() use a error param
     var question = function(q,c){i.question(q,function(a){c(null,a)})};
-    Seq().seq('title', function() {
-      question('Title of issue: ', this);
-    }).seq('desc', function() {
-      question('Description: ', this);
-    }).seq('devs', function() {
-      question('Developers to ask: ', this);
-    }).seq(function() {
-      i.close();
-      process.stdin.destroy();
-      cb(null, {
-        title: this.vars['title'],
-        description: this.vars['desc'],
-        developers: this.vars['devs']
+    
+    Seq()
+      .seq('title', function() { question('Title of issue: ', this); })
+      .seq('desc', function() { question('Description: ', this); })
+      .seq('devs', function() { question('Developers to ask: ', this); })
+      .seq(function() {
+        i.close();
+        process.stdin.destroy();
+        var answers = [];
+        
+        if (this.vars['title'].length > 0) {
+          answers.push(notSure.underline(this.vars['title']));
+        }
+        if (this.vars['desc'].length > 0) {
+          answers.push(this.vars['desc']);
+        }
+        if (this.vars['devs'].length > 0) {
+          answers.push('asked: '+this.vars['devs']);
+        }
+          
+        cb(null, answers.join('\n\n'));
       });
-    });
   };
 
   /**
@@ -85,6 +99,11 @@
     return string+'\n'+underline;
   }
 
+  notSure.clearTerminal = function() {
+    for (var i=0;i<5;i++) console.log('');
+    console.log('\u001B[2J\u001B[0;0f');
+  }
+
   /**
    * Perform the whole dance from checks and questions to the finished
    * output
@@ -95,16 +114,10 @@
       .seq('diff', function(vcs) { notSure.getDiff(vcs, this); })
       .seq(function() { notSure.askQuestions(this); })
       .seq(function(answers) {
-        // clear the terminal
-        for (var i=0;i<5;i++) console.log('');
-        console.log('\u001B[2J\u001B[0;0f');
-
-        console.log(notSure.underline(answers.title));
-        console.log(answers.description+'\n');
-        console.log('asked: '+answers.developers+'\n');
-        console.log(this.vars['diff']);
+        notSure.clearTerminal();
+        console.log(answers, '\n\n', this.vars['diff']);
       })
-      .catch(function(err) { throw err; });
+      .catch(function(err) { console.log(err); });
   }
 
   /**
