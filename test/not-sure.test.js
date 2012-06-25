@@ -13,9 +13,9 @@ var createDirtyRepo = function(cb) {
 
 describe('notSure', function() {
 	beforeEach(function(done) {
-		exec('mkdir -p tmp/'+ts, function(err) {
+		exec('mkdir tmp', function(err) {
 			if (err) throw err;
-			process.chdir('tmp/'+ts);
+			process.chdir('tmp');
 			done();
 		});
 	})
