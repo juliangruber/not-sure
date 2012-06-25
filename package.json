@@ -1,9 +1,17 @@
 {
 	"name": "not-sure",
+	"keywords": ['review', 'codereview'],
 	"author": "Julian Gruber <julian@juliangruber.com>",
-	"dependencies": {
-		"seq": "0.3.5"
-	}
+	"version": "0.0.1",
+	"licenses": [{
+	  "type": "MIT",
+	  "url": "https://raw.github.com/juliangruber/not-sure/master/LICENSE"
+	}],
+	"engines": { "node": "*" },
+	"bin": { "notsure": "./bin/notsure" },
+	"repository": "git://github.com/juliangruber/not-sure",
+	"main": "not-sure",
+	"dependencies": { "seq": "0.3.5" },
 	"devDependencies": {
 		"mocha": "*",
 		"should": "*"
