@@ -13,7 +13,7 @@
    * and then prints a nice output ready to send for code review.
    */
   var notSure = {};
-  
+
   /**
    * Execute a git/svn diff and pass results to `cb()`
    * TODO: Check if svn includes new files in the diff
@@ -61,7 +61,7 @@
     var i = rl.createInterface(process.stdin, process.stdout, null);
     // Make i.questions() use a error param
     var question = function(q,c){i.question(q,function(a){c(null,a)})};
-    
+
     Seq()
       .seq('title', function() { question('Title of issue: ', this); })
       .seq('desc', function() { question('Description: ', this); })
@@ -70,7 +70,7 @@
         i.close();
         process.stdin.destroy();
         var answers = [];
-        
+
         if (this.vars['title'].length > 0) {
           answers.push(notSure.underline(this.vars['title']));
         }
@@ -80,7 +80,7 @@
         if (this.vars['devs'].length > 0) {
           answers.push('asked: '+this.vars['devs']);
         }
-          
+  
         cb(null, answers.join('\n\n'));
       });
   };
@@ -99,6 +99,9 @@
     return string+'\n'+underline;
   }
 
+  /**
+   * Helper function that prints some blank lines and then clears the terminal
+   */
   notSure.clearTerminal = function() {
     for (var i=0;i<5;i++) console.log('');
     console.log('\u001B[2J\u001B[0;0f');
