@@ -30,10 +30,7 @@ describe('notSure', function() {
 			process.chdir('/');
 			notSure.getDiff('git', function(err, diff) {
 				should.exist(err);
-				notSure.getDiff('svn', function(err, diff) {
-					should.exist(err);
-					done();
-				})
+				done();
 			})
 		});
 		it('should get a diff', function(done) {
