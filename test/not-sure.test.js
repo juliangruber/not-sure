@@ -1,72 +1,77 @@
 var notSure = require('../not-sure');
-var exec = require('child_process').exec;
+var exec = require('child_process').exec
+var should = require('should');
+var oldDir = process.cwd();
+var ts = Date.now();
+
+var createDirtyRepo = function(cb) {
+	exec('git init && touch README && git add . && git commit -m \'initial\''
+			+'&& echo \'bla\' > README', function(err) {
+		cb(err);
+	});
+}
 
 describe('notSure', function() {
-	describe('getDiff()', function() {
-		it('shouldn\'t be a git working directory', function(done) {
-			notSure.getDiff('git', function(err, diff) {
-				console.log(err);
-				done();
-			})
+	beforeEach(function(done) {
+		exec('mkdir -p tmp/'+ts, function(err) {
+			if (err) throw err;
+			process.chdir('tmp/'+ts);
+			done();
 		});
-		it('shouldn\'t be a svn working directory', function(done) {
-			notSure.getDiff('svn', function(err, diff) {
-				console.log(err);
-				done();
+	})
+	
+	afterEach(function(done) {
+		process.chdir(oldDir);
+		exec('rm -Rf tmp', done);
+	});
+	
+	describe('getDiff()', function() {
+		it('shouldn\'t be a working directory', function(done) {
+			process.chdir('/');
+			notSure.getDiff('git', function(err, diff) {
+				should.exist(err);
+				notSure.getDiff('svn', function(err, diff) {
+					should.exist(err);
+					done();
+				})
 			})
 		});
 		it('should get a diff', function(done) {
-			var ts = Date.now();
-			var oldDir = process.cwd();
-			exec('mkdir tmp/'+ts, function(err, stdin, stderr) {
+			createDirtyRepo(function(err) {
 				if (err) throw err;
-				process.chdir('tmp/'+ts);
-				exec('git init && touch README && git add . '
-				+'&& git commit -m \'initial\' && echo \'bla\' > Makefile',
-					function(err, stdin, stderr) {
-						if (err) throw err;
-						notSure.getDiff('git', function(err, diff) {
-							if (err) throw err;
-							console.log(diff);
-							process.chdir(oldDir);
-							done();
-						});
+				notSure.getDiff('git', function(err, diff) {
+					should.exist(diff);
+					done(err);
 				});
 			});
 		});
 	});
 	describe('findVcs()', function() {
 		it('shouldn\'t find a Vcs', function(done) {
+			process.chdir('/');
 			notSure.findVcs(function(err, vcs) {
-				console.log(err);
+				should.exist(err);
+				done();
 			});
 		});
 		it('should find a Vcs', function(done) {
-			var oldDir = process.cwd();
-			exec('mkdir tmp/'+ts, function(err, stdin, stderr) {
+			exec('git init', function(err) {
 				if (err) throw err;
-				process.chdir('tmp/'+ts);
-				exec('git init', function(err, stdin, stderr) {
-					if (err) throw err;
-					notSure.findVcs(function(err, vcs) {
-						if (err) throw err;
-						console.log(vcs);
-						process.chdir(oldDir);
-						done();
-					});
+				notSure.findVcs(function(err, vcs) {
+					should.exist(vcs);
+					done(err);
 				});
 			});
 		});
 	});
 	describe('underline()', function() {
-		it('should use a default char', function() {
-			console.log(notSure.underline('teststring'));
-		});
-		it('should underline with the correct length', function() {
-			console.log(notSure.underline('teststring'));
+		it('should be formatted correctly', function() {
+			notSure.underline('teststring')
+			.should.equal('teststring\n----------');
 		});
 		it('should underline with the correct char', function() {
-			console.log(notSure.underline('teststring'));
+			notSure.underline('teststring', '=')
+			.should.equal('teststring\n==========');
 		});
 	});
 });

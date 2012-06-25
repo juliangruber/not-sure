@@ -108,6 +108,66 @@
 			});
 		});
 	};
+	/**
+	 // Step (16)
+	Step(
+		function findVcs() {
+			notSure.findVcs(this);
+		},
+		function getDiff(err, scm) {
+			notSure.getDiff(scm, this);
+		},
+		function askQuestions(err, diff) {
+			this.diff = diff;
+			notSure.askQuestions(this);
+		},
+		function output(err, answers) {
+			console.log(this.diff);
+			console.log(answers);
+		}
+	);
+
+	// Seq (14)
+	Seq()
+		.seq(function findVcs() {
+			notSure.findVcs(this);
+		})
+		.seq('diff', function getDiff(err, scm) {
+			notSure.getDiff(scm, this);
+		})
+		.seq(function askQuestions() {
+			notSure.askQuestions(this);
+		})
+		.seq(function(err, answers) {
+			console.log(this.vars['diff']);
+			console.log(answers);
+		});
+
+	// invoke (11)
+	invoke(function findVcs(data, cb) {
+
+		notSure.findVcs(cb);
+
+	}).then(function getDiff(vcs, cb) {
+
+		notSure.getDiff(vcs, cb);
+
+	}).then(function askQuestions(diff, cb) {
+
+		this.diff = diff // ?
+		notSure.askQuestions(cb);
+
+	}).rescue(function(err) {
+
+		throw err;
+
+	}).end(initialData, function(answers) {
+
+		console.log(answers);
+		console.log(data[0]); // ?
+
+	});
+	 */
 
 	/**
 	 * Only call `ask()` if not included by another module.

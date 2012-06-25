@@ -1,0 +1,8 @@
+{
+	"name": "not-sure",
+	"author": "Julian Gruber <julian@juliangruber.com>",
+	"devDependencies": {
+		"mocha": "*",
+		"should": "*"
+	}
+}
