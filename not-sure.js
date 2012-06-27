@@ -4,6 +4,8 @@
   var exec = require('child_process').exec;
   var rl = require('readline');
   var Seq = require('seq');
+  var request = require('superagent');
+  var os = require('os');
 
   /**
    * notSure code review script
@@ -16,16 +18,15 @@
 
   /**
    * Execute a git/svn diff and pass results to `cb()`
-   * TODO: Check if svn includes new files in the diff
    * 
    * @param {String} cmd VCS shell command
    * @param {Function} cb Gets passed errors and diff output
    */
   notSure.getDiff = function(cmd, cb) {
-    if (cmd === 'git') {
+    if (cmd === 'git' && os.type() !== 'Windows_NT') {
       exec('(export GIT_INDEX_FILE=.git/tempindex; '
         + 'cp .git/index $GIT_INDEX_FILE; '
-        + 'git add .; git diff --cached)', consume);
+        + 'git add .; git diff -U3 --cached)', consume);
     } else {
       exec(cmd+' diff', consume);
     }
@@ -65,46 +66,24 @@
     Seq()
       .seq('title', function() { question('Title of issue: ', this); })
       .seq('desc', function() { question('Description: ', this); })
-      .seq('devs', function() { question('Developers to ask: ', this); })
       .seq(function() {
         i.close();
         process.stdin.destroy();
-        var answers = [];
-
-        if (this.vars['title'].length > 0) {
-          answers.push(notSure.underline(this.vars['title']));
-        }
-        if (this.vars['desc'].length > 0) {
-          answers.push(this.vars['desc']);
-        }
-        if (this.vars['devs'].length > 0) {
-          answers.push('asked: '+this.vars['devs']);
-        }
-  
-        cb(null, answers.join('\n\n'));
+        cb(null, {
+          title: this.vars['title'],
+          description: this.vars['desc']
+        });
       });
   };
 
-  /**
-   * Helper function that underlines a string
-   *
-   * @param {String} string
-   * @param {String} char Character to underline `string` with
-   * @returns {String} Underlined string
-   */
-  notSure.underline = function(string, char) {
-    char = char || '=';
-    var underline = '';
-    for (var i=0; i<string.length; i++) underline += char;
-    return string+'\n'+underline;
-  }
-
-  /**
-   * Helper function that prints some blank lines and then clears the terminal
-   */
-  notSure.clearTerminal = function() {
-    for (var i=0;i<5;i++) console.log('');
-    console.log('\u001B[2J\u001B[0;0f');
+  notSure.sendToServer = function(data) {
+    request
+      .put('http://127.0.0.1:3000/reviews')
+      .set('Content-Type', 'application/json')
+      .send(data)
+      .end(function(res){
+        console.log('http://127.0.0.1:3000/reviews/'+res.body.id);
+      });
   }
 
   /**
@@ -117,8 +96,11 @@
       .seq('diff', function(vcs) { notSure.getDiff(vcs, this); })
       .seq(function() { notSure.askQuestions(this); })
       .seq(function(answers) {
-        notSure.clearTerminal();
-        console.log(answers, '\n\n', this.vars['diff']);
+        notSure.sendToServer({
+          title: answers.title,
+          description: answers.description,
+          diff: this.vars['diff']
+        });
       })
       .catch(function(err) { console.log(err); });
   }

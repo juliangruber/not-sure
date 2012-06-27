@@ -12,7 +12,10 @@
 	"bin": { "notsure": "./bin/notsure" },
 	"repository": "git://github.com/juliangruber/not-sure",
 	"main": "not-sure",
-	"dependencies": { "seq": "0.3.5" },
+	"dependencies": {
+	  "seq": "0.3.5",
+	  "superagent": "*"
+	},
 	"devDependencies": {
 		"mocha": "*",
 		"should": "*"
