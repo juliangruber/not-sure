@@ -26,7 +26,7 @@
     if (cmd === 'git' && os.type() !== 'Windows_NT') {
       exec('(export GIT_INDEX_FILE=.git/tempindex; '
         + 'cp .git/index $GIT_INDEX_FILE; '
-        + 'git add .; git diff -U3 --cached)', consume);
+        + 'git add .; git diff -U99999 --cached)', consume);
     } else {
       exec(cmd+' diff', consume);
     }
@@ -76,13 +76,13 @@
       });
   };
 
-  notSure.sendToServer = function(data) {
+  notSure.sendToServer = function(server, data) {
     request
-      .put('http://127.0.0.1:3000/reviews')
+      .put(server)
       .set('Content-Type', 'application/json')
       .send(data)
       .end(function(res){
-        console.log('http://127.0.0.1:3000/reviews/'+res.body.id);
+        console.log(server+res.body.id);
       });
   }
 
@@ -96,7 +96,7 @@
       .seq('diff', function(vcs) { notSure.getDiff(vcs, this); })
       .seq(function() { notSure.askQuestions(this); })
       .seq(function(answers) {
-        notSure.sendToServer({
+        notSure.sendToServer('http://127.0.0.1:3000/reviews/', {
           title: answers.title,
           description: answers.description,
           diff: this.vars['diff']
